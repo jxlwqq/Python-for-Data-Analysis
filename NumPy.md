@@ -68,6 +68,8 @@ np.arange(15)
 ```
 表1列出了一些数组创建函数。由于NumPy关注的是数值计算,因此,如果没有特别指定,数据类型基本都是float64(浮点型)。
 
+表1:数组创建函数
+
 |函数|说明|
 |:---|:---|
 |array|将输入数据(列表、元组、数组或其他序列类型)转换成ndarray。要么推断出dtype,要么显式指定dtype。默认直接复制输入数据|
@@ -90,5 +92,57 @@ arr_float
 arr_int
 ```
 
-dtype是NumPy如此强大和灵活的原因之一。多数情况下,他们直接映射到相应的机器表示,这使得"读写磁盘上的二进制数据流"以及"集成低级语言代码"等工作变得更加简单。
+dtype是NumPy如此强大和灵活的原因之一。多数情况下,他们直接映射到相应的机器表示,这使得"读写磁盘上的二进制数据流"以及"集成低级语言代码"等工作变得更加简单。数值型dtype的命名方式相同:一个类型名(如float或int),后面跟一个用于与表示各元素位长的数字。标准的双精度浮点数(即Python中的float对象)需要占用8字节(即64位)。因此,该类型在NumPy中就记作float64。表2列出了NumPy所支持的全部数据类型。
+
+表2:NumPy的数据类型
+
+|类型|类型代码|说明|
+|:---|:---|:---|
+|int8 uint8|i1 u1|有符号和无符号的8位(1个字节)整型|
+|int16 uint16|i2 u2|有符号和无符号的16位(2个字节)整型|
+|int32 uint32|i4 u4|有符号和无符号的32位(4个字节)整型|
+|int64 uint64|i8 u8|有符号和无符号的64位(8个字节)整型|
+|float16|f2|半经度浮点数|
+|float32|f4 f|标准的单精度浮点数。与C的float兼容|
+|float64|f8 d|标准的双精度浮点数。与C的double和Python的float对象兼容|
+|float128|f16 g|扩展精度浮点数|
+|complex64 complex128|c8 c16|分别用两个32位、64位或128位浮点数表示的复数|
+|complex256|c32|复数|
+|bool| |存储True和False值的布尔类型|
+|object|O|Python对象类型|
+|string_|S|固定长度的字符串类型(每个字符1个字节)|
+|unicode_|U|固定长度的unicode类型(字节数由平台决定)|
+
+你可以通过ndarray的astype方法显式地转换其dtype:
+```
+arr = np.array([1, 2, 3, 4, 5])
+
+arr.dtype
+
+float_arr = arr.astype(np.float64)
+float_arr.dtype
+```
+
+如果将浮点数转换成整数,则小数部分将会被截断:
+```
+arr = np.array([3.7, -1.2, -2.6, 0.5, 12.9, 10.1])
+
+arr
+
+arr.astype(np.int32)
+```
+
+如果某字符串数组表示的全是数字,也可以用astype将其转换为数值形式:
+```
+numeric_strings = np.array(['1.25', '-9.6', '42'], dtype=np.string_)
+
+numeric_strings.astype(float)
+```
+
+如果转换过程因为某种原因而失败了(比如某个不能被转换为float64的字符串),就会抛出一个TypeError。上面astype()的参数参数是float而不是np.float64,NumPy会将Python类型映射到等价的dtype上。
+
+数组的dtype还有另外一个用法:
+
+
+
 
