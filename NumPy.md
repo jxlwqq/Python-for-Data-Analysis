@@ -604,10 +604,76 @@ NumPy能够读写磁盘上的文本数据或二进制数据。
 ## 将数组以二进制格式保存到磁盘
 
 np.save和np.load是读写磁盘数组数据的两个主要函数。默认情况下，数组是以未压缩的原始二进制格式保存在扩展名为.npy的文件中的。
+```
+arr=np.arange(10)
+np.save('some_array', arr)
+```
+如果文件路径末尾没有扩展名.npy，则该扩展名会被自动加上。然后就可以通过np.load读取磁盘上的数组：
+```
+np.load('some_array.npy')
+```
+通过np.savez可以将多个数组保存到一个压缩文件中，将数组以关键字参数的形式传入即可：
+```
+np.savez('some_array', a=arr, b=arr)
+```
+加载.npz文件时，会得到一个类似字典的对象，该对象会对各个数组进行延迟加载：
+```
+arch=np.load('some_array.npz')
+arch['b']
+```
 
+## 存取文本文件
 
+在文件中加载文本是一个非常标准的任务。常用的函数有np.loadtxt或者更为专门化的np.genfromtxt将数据加载到普通的NumPy数组中。
 
+这些函数都有许多选项可供使用：指定各种分隔符、针对特定列的转换器函数、需要跳过的行数等。以一个简单的逗号分隔文件（CSV）为例：
+```
+np.loadtxt('test.csv', delimiter=',')
+```
+np.savetxt执行的是相反的操作：将数组写到以某种分隔符隔开的文件文件中。
 
+gentfromtxt跟loadtxt差不多，只不多它面向的是结构化数组和缺失数据处理。
 
+# 线性代数
 
+线性代数（如矩阵乘法、矩阵分解、行列式以及其他方阵数学等）是任何数组库的重要组成部分。不像某些语言（如MATLA），通过*对两个二维数组相乘得到的是一个元素级的积，而不是一个矩阵点积。因此，NumPy提供了一个用于矩阵乘法的dot函数（既是一个数组方法也是NumPy命名空间中的一个函数）：
+```
+x=np.array([[1,2,3],[4,5,6]])
+y=np.array([[6,23],[-1,7],[8,9]])
+
+x.dot(y)
+np.dot(x,y)
+```
+一个二维数组跟一个大小合适的一维数据的矩阵点积运算之后将会得到一个一维数据：
+```
+np.dot(x, np.ones(3))
+```
+
+numpy.linalg中有一组标准的矩阵分解运算以及诸如求逆和行列式之类的东西。他们跟MATLAB和R等语言所使用的相同的行业标准级Fortran库，如BLAS、LAPACK、Intel MKL（可能有，取决于NumPy版本）等：
+```
+from numpy.linalg import inv, qr
+x=np.random.randn(5,5)
+mat=x.T.dot(x)
+int(mat)
+mat.dot(inv(mat))
+q,r=qr(mat)
+```
+
+常用的numpy.linalg函数
+
+|函数|说明|
+|:---|:---|
+|diag|以一维数组的形式返回方阵的对角线（或非对角线）元素，或将一维数组转换为方阵（非对角线元素为0）|
+|dot|矩阵乘法|
+|trace|计算对角线元素的和|
+|det|计算矩阵行列式|
+|eig|计算方阵的本证值和本证向量|
+|inv|计算方阵的逆|
+|pinv|计算矩阵的Moore-Penrose伪逆|
+|qr|计算QR分解|
+|svd|计算奇异值分解（SVD）|
+|solve|解线性方程组Ax=b，其中A为一个方阵|
+|lstsq|计算Ax=b的最小二乘解|
+
+# 随机数生成
 
