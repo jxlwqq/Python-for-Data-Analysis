@@ -681,9 +681,21 @@ numpy.random模块对Python内置的random进行了补充，增加了一些用�
 samples=np.random.normal(size=(4,4))
 samples
 ```
-而Python内置的random模块则只能一次生成一个样本值。从下面的测试结果中可以看出，如果需要产生大量样本值，numpy.random快了不止一个数量级：
-```
-from random import normalvariate
-todo
-```
+而Python内置的random模块则只能一次生成一个样本值。在生成速度上，numpy.random快了不止一个数量级。
 
+部分numpy.random函数
+
+|函数|说明|
+|:---|:---|
+|seed|确定随机数生成器的种子|
+|permutation|返回一个序列的随机排列或返回一个随机排列的范围|
+|shuffle|对一个序列就地随机排列|
+|rand|产生均匀分布的样本值|
+|randint|从给定的上下限范围内随机选取整数|
+|randn|产生正态分布（平均值为0，标准差为1）的样本值，类似于MATLAB接口|
+|binomial|产生二项分布的样本值|
+|normal|产生正态（高斯）分布的样本值|
+|beta|产生Beta分布的样本值|
+|chisquare|产生卡方分布的样本值|
+|gamma|产生Gamma分布的样本值|
+|uniform|产生在[0,1)中均匀分布的样本值|
