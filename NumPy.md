@@ -676,4 +676,14 @@ q,r=qr(mat)
 |lstsq|计算Ax=b的最小二乘解|
 
 # 随机数生成
+numpy.random模块对Python内置的random进行了补充，增加了一些用于高效生成多种概率分布的样本值的函数。例如，可以用normal来得到一个准备正态分布的4*4样本数组：
+```
+samples=np.random.normal(size=(4,4))
+samples
+```
+而Python内置的random模块则只能一次生成一个样本值。从下面的测试结果中可以看出，如果需要产生大量样本值，numpy.random快了不止一个数量级：
+```
+from random import normalvariate
+todo
+```
 
