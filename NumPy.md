@@ -418,3 +418,196 @@ np.modf(arr)
 |copysign|将第二个数组中的值的符号复制给第一个数组中的值|
 |greater greater_equal less less_equal equal not_equal|执行元素级的比较运算，最总产生布尔型数组。相当于中缀运算符 > >= < <= == !=|
 |logical_and logical_or logical_xor|执行元素级的真值逻辑运算。相当于中缀运算符& \| ^|
+
+# 利用数组进行数据处理
+
+NumPy数组可以将许多种数据处理任务表述为间接的数组表达式（否则需要编写循环）。用数组表达式代替循环的做法，通常被称为矢量化。一般来说，矢量化数组运算要比等价的纯Python方式快上一两个数量级（甚至更多），尤其是各种数值计算。
+
+假设要在一组值（网格型）上计算函数sqrt(x^2 + y^2)。np.meshgrid函数接受两个一维数组，并产生两个二维矩阵（对应于两个数组中所有的(x, y)对）：
+```
+points = np.arange(-5,5,0.01) # 1000个间隔相等的点
+
+xs, ys = np.meshgrid(points, points)
+```
+现在，对该函数的求值运算就好办了，把这两个数组当做两个浮点数那样编写表达式即可：
+```
+import matplotlib.pyplot as plt
+z = np.sqrt(xs**2+ys**2)
+plt.imshow(z, cmap=plt.cm.gray)
+plt.colorbar()
+plt.title("Image plot of $\sqrt{x^2 + y^2}$ for a grid of values")
+```
+函数值（一个二维数组）的图形化结果是用matplotlib的imshow函数创建的。
+
+## 将条件逻辑表述为数组运算
+numpy.where函数是三元表达式 x if condition else y 的矢量化版本。假设有一个布尔数组和两个值数组：
+```
+xarr = np.array([1.1, 1.2, 1.3, 1.4, 1.5])
+yarr = np.array([2.1, 2.2, 2.3, 2.4, 2.5])
+cond = np.array([True, False, True, True, False])
+```
+假设要根据cond中的值选取xarr和yarr的值：当cond中的值为True时，选取xarr的值，否则从yarr中选取。列表推导式的写法应该如下所示：
+```
+result = [(x if c else y) for x, y, c in zip(xarr, yarr, cond)]
+```
+这有几个问题。第一，它对大叔组的处理速度不是很快（因为所有工作都是由纯Python完成的）。第二，无法用于多维数组。若使用np.where，则可以将该功能写的非常简洁：
+```
+result=np.where(cond, xarr, yarr)
+```
+np.where的第二个和第三个参数不必是数组，他们都可以是标量值。在数据分析工作中，where通常用于根据另个一数组而产生一个新的数组。假设有一个由随机数据组成的矩阵，要将所有正值替换为2，将所有负值替换为-2。若利用np.where，则会非常简单：
+```
+arr = np,random.randn(4,4)
+np.where(arr>0,2,-2)
+np.where(arr>0,2,arr)
+```
+传递给where的数组大小可以不相等，甚至可以是标量值。
+
+np.where可以表述更为复杂的逻辑。假设有两个布尔型数组cond1和cond2，希望根据4种不同的布尔值组合实现不同的赋值操作：
+```
+result = []
+
+for i in range(n):
+    if cond1[i] and cond2[i]:
+        result.append(0)
+    elif cond1[i]:
+        result.append(1)
+    elif cond2[i]:
+        result.append(2)
+    else:
+        result.append(3)
+```
+这个for循环可以被改写成一个嵌套的where表达式：
+```
+np.where(cond1 & cond2, 0, np.where(cond1, 1, np.where(cond2, 2, 3)))
+```
+在这个特殊的例子中，可以利用"布尔值在计算过程中可以被当做0或1处理"这个事实，素以还能将其写成下面这个算术运算：
+```
+result = 1 * (cond1 - cond2) + 2 * (con2 & -cond1) + 3 * （cond1 | cond2）
+```
+
+## 数学和统计方法
+
+可以通过数组上的一组数学函数对整个数组或某个轴向的数据进行统计计算。sum、mean以及标准差std等聚合计算（aggregation，通常叫做约简（reduction））既可以当做数组的实例方法调用，也可以当做顶级NumPy函数使用：
+```
+arr=np.random.randn(5,4) # 正态分布的数据
+arr.mean()
+np.mean(arr)
+
+arr.sum()
+np.sum(arr)
+```
+mean和sum这类的函数可以接受一个axis参数（用于计算该轴向上的统计值），最终结果是一个少一维的数组：
+```
+arr.mean(axis=1)
+arr.mean(1)
+arr.mean(0)
+```
+其他如cumsum和cumprod之类的方法则不聚合，而是产生一个由中间结果组成的数组：
+```
+arr = np.array([[1,2,3],[4,5,6],[7,8,9]])
+arr.cumsum() # 累加
+arr.cumsum(0)
+arr.cumsum(1)
+
+arr.cumprod() # 累积
+arr.cumprod(0)
+arr.cumprod(1)
+```
+
+基本数组统计方法
+
+|方法|说明|
+|:---|:---|
+|sum|对数组中全部或某轴向的元素求和。零产犊的数组的sum为0|
+|mean|算术平均数。零长度的数组的mean为NaN|
+|std var|分别为标准差和方差，自由度可调（默认为n）|
+|min max|最小值和最大值|
+|argmin argmax|分别为最大和最小元素的索引|
+|cumsum|所有元素的累计和|
+|cumprod|所有元素的累计积|
+
+## 用于布尔型数组的方法
+在上述方法中，布尔值会被强制转换为1（True）和0（False）。因此，sum经常被用来对布尔型数组中的True值计数：
+```
+arr=np.random.randn(100)
+(arr>0).sum()
+np.sum(arr>0)
+```
+另外还有两个方法any和all，它们对布尔型数组非常有用。any用于测试数组中是否存在一个或多个True，而all则检查数组中所有值是否都是True：
+```
+bool_arr = np.array([False, False, True, False])
+bool_arr.any()
+bool_arr.all()
+```
+这两个方法也能用于非布尔型数组，所有非0元素将会被当做True。
+
+## 排序
+
+跟Python内置的列表类型一样，NumPy数组也可以通过sort方法就地排序：
+```
+arr=np.random.randn(8)
+
+arr.sort()
+```
+
+多维数组可以在任何一个轴向上进行排序，只需将轴边哈传给sort即可：
+```
+arr=np.random.rand(5,3)
+arr.sort()
+arr.sort(1)
+
+arr.sort(0)
+```
+
+顶级方法np.sort返回的是数组的已排序副本，而就地排序则会修改数组本身。计算数组分位数最简单的办法是对其进行排序，然后选取特定位置的值：
+```
+large_arr = np.random.randn(1000)
+large_arr.sort()
+large_arr[int(0.05 * len(large_arr))] # 5%分位数
+```
+
+## 唯一化以及其他的集合逻辑
+
+NumPy提供了一些针对一维ndarray的基本集合运算。最常用的可能要数np.unique了，它用于找出数组中的唯一值并返回已排序的结果：
+```
+names = np.array(['Bob', 'Joe', 'Will', 'Bob', 'Will', 'Joe', 'Joe'])
+np.unique(names)
+
+ints = np.array([3,3,3,4,4,2,3,2,3,1,1,1])
+np.unique(ints)
+```
+
+np.unique与等价的纯Python代码对比：
+```
+sorted(set(names))
+```
+另一个函数np.in1d用于测试一个数组中的值在另一个数组中的成员资格，返回一个布尔型数组：
+```
+values = np.array([6,0,0,3,2,5,6])
+np.in1d(values, [2,3,6])
+```
+数组的集合运算
+
+|方法|说明|
+|:---|:---|
+|unique(x)|计算x中的唯一元素，并返回有序结果|
+|intersect1d(x,y)|计算x和y中的公共元素（交集），并返回有序结果|
+|union1d(x,y)|计算x和y的并集，并返回有序结果|
+|in1d(x,y)|得到一个表示"x的元素是否包含于y"的布尔型数组|
+|setdiff1d|集合的差，即元素在x中且不在y中|
+|setxor1d|集合的对称查，即存在于一个数组中但不同时存在在于两个数组中的元素（异或）|
+
+# 用于数组的文件输入输出
+
+NumPy能够读写磁盘上的文本数据或二进制数据。
+
+## 将数组以二进制格式保存到磁盘
+
+np.save和np.load是读写磁盘数组数据的两个主要函数。默认情况下，数组是以未压缩的原始二进制格式保存在扩展名为.npy的文件中的。
+
+
+
+
+
+
+
