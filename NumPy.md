@@ -699,3 +699,32 @@ samples
 |chisquare|产生卡方分布的样本值|
 |gamma|产生Gamma分布的样本值|
 |uniform|产生在[0,1)中均匀分布的样本值|
+
+# 范例：随机漫步
+通过模拟随机漫步来说明如何运用数组运算。一个简单的随机漫步的例子：
+> 从0开始，步长1和-1出现的概率相等。
+通过内置的random模块以纯Python的方式实现1000步的随机漫步：
+```
+import numpy as np
+
+position=0
+walk=[position]
+steps=1000
+for i in xrange(steps):
+    step = 1 if np.random.randint(0,2) else -1
+    position+=step
+    walk.append(position)
+```
+不难看出，这其实就是随机漫步中各步的累计和，可以用一个数组运算来实现。因此，可以使用np.random模块一次性随机生成1000个"掷硬币"结果，将其分别设置为1或-1，然后计算累计和：
+```
+nsteps=1000
+draws=np.random.randint(0,2, size=nsteps)
+steps=np.where(draws>0,1,-1)
+walk=steps.cumsum()
+```
+在这些数据的基础之上，就可以做一些统计工作了，比如求取最大值和最小值：
+```
+walk.min()
+walk.max()
+```
+现在来看一个复杂点的统计任务——首次穿越时间，即速记漫步过程中第一次到达某个特定值的时间。假设需要了解随机漫步需要多久才能距离初始0点至少10步元（任一方向均可）。
